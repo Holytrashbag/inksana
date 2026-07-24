@@ -1,5 +1,247 @@
 @import 'tailwindcss';
 
+/* Brand fonts — self-hosted (GDPR-safe). Variable TTFs live in
+   apps/web/assets/fonts/; Vite hashes & bundles them from these relative URLs.
+   Playfair Display (display serif, wght 400–900) + Archivo (body/UI grotesk,
+   wght 100–900, wdth 62–125). */
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('../../assets/fonts/PlayfairDisplay-VariableFont_wght.ttf') format('truetype-variations');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  src: url('../../assets/fonts/PlayfairDisplay-Italic-VariableFont_wght.ttf')
+    format('truetype-variations');
+  font-weight: 400 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('../../assets/fonts/Archivo-VariableFont_wdth,wght.ttf') format('truetype-variations');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('../../assets/fonts/Archivo-Italic-VariableFont_wdth,wght.ttf')
+    format('truetype-variations');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ============================================================================
+   Inksana Design System — foundations
+   Monochrome, editorial. One warm-neutral "ink" scale, one reserved oxblood
+   accent (errors only). Sharp editorial controls, softly-framed printed
+   surfaces. Motion reads as ink settling — never a UI toy.
+   Semantic foreground maps to the ink scale directly:
+     text-primary → text-ink-950   text-secondary → text-ink-600
+     text-muted   → text-ink-400   text-on-ink    → text-paper
+   ========================================================================== */
+@theme {
+  /* ---- Color · warm-neutral ink scale (paper → near-black) ------------- */
+  --color-ink-950: #0d0c0b;
+  --color-ink-900: #171513;
+  --color-ink-800: #28241f;
+  --color-ink-700: #3c362e;
+  --color-ink-600: #595245;
+  --color-ink-500: #7a7266;
+  --color-ink-400: #9d968a;
+  --color-ink-300: #c2bbad;
+  --color-ink-200: #ded7c9;
+  --color-ink-100: #ece7db;
+  --color-ink-50: #f6f3ec;
+  --color-paper: #faf8f2;
+  --color-paper-dim: #f0ece2;
+
+  /* Reserved dark accent — error states & rare punctuation only. Never decorative. */
+  --color-blood: #5c1a15;
+
+  /* Semantic surfaces & roles (clean utility names, no namespace clashes) */
+  --color-surface: var(--color-paper); /* bg-surface — page field */
+  --color-surface-card: #ffffff; /* bg-surface-card */
+  --color-surface-sunken: var(--color-paper-dim); /* bg-surface-sunken */
+  --color-surface-ink: var(--color-ink-950); /* bg-surface-ink — inverted */
+  --color-hairline: var(--color-ink-200); /* border-hairline */
+  --color-scrim: rgb(13 12 11 / 0.72); /* bg-scrim — modal overlay */
+  --color-veil: rgb(250 248 242 / 0.86); /* bg-veil — sticky header wash */
+
+  /* ---- Type ----------------------------------------------------------- */
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+  --font-body: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+
+  /* Display scale — fluid, tight leading, tight tracking */
+  --text-display-xl: clamp(3.5rem, 6vw, 7rem);
+  --text-display-xl--line-height: 1.05;
+  --text-display-xl--letter-spacing: -0.02em;
+  --text-display-lg: clamp(2.75rem, 4.5vw, 4.75rem);
+  --text-display-lg--line-height: 1.05;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-md: clamp(2rem, 3vw, 3rem);
+  --text-display-md--line-height: 1.25;
+  --text-display-md--letter-spacing: -0.02em;
+  --text-display-sm: clamp(1.5rem, 2vw, 2rem);
+  --text-display-sm--line-height: 1.25;
+
+  /* Body scale */
+  --text-body-lg: 1.25rem;
+  --text-body-lg--line-height: 1.7;
+  --text-body-md: 1.0625rem;
+  --text-body-md--line-height: 1.5;
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.5;
+  --text-body-xs: 0.8125rem;
+  --text-body-xs--line-height: 1.5;
+
+  /* Label / eyebrow — uppercase, wide tracking */
+  --text-label: 0.75rem;
+  --text-label--line-height: 1;
+  --text-label--letter-spacing: 0.14em;
+
+  /* Letter-spacing scale */
+  --tracking-tight: -0.02em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.04em;
+  --tracking-wider: 0.14em;
+
+  /* Line-height scale */
+  --leading-tight: 1.05;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  /* ---- Radius · two registers ----------------------------------------- */
+  /* Sharp for editorial controls (buttons, inputs, tags) … */
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  /* … generous for softly-framed printed surfaces (cards, dialogs, signage) */
+  --radius-xl: 20px;
+  --radius-frame: 28px;
+  --radius-pill: 999px;
+
+  /* ---- Elevation · very soft, low-contrast; genuinely-raised surfaces only */
+  --shadow-card: 0 1px 2px rgb(13 12 11 / 0.04), 0 8px 24px -12px rgb(13 12 11 / 0.18);
+  --shadow-raised: 0 2px 4px rgb(13 12 11 / 0.06), 0 16px 40px -16px rgb(13 12 11 / 0.28);
+  --shadow-focus: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-ink-950);
+
+  /* ---- Layout containers ---------------------------------------------- */
+  --container-content: 1280px; /* max-w-content */
+  --container-narrow: 760px; /* max-w-narrow */
+
+  /* ---- Motion · easings ----------------------------------------------- */
+  --ease-ink: cubic-bezier(0.22, 0.61, 0.22, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Signature animations (animate-*). No bounce, no spring, no scale-pop. */
+  --animate-draw-in: draw-in var(--duration-draw) var(--ease-ink) forwards;
+  --animate-fade-rise: fade-rise var(--duration-slow) var(--ease-out) forwards;
+  --animate-fade-in: fade-in var(--duration-base) var(--ease-out) forwards;
+  --animate-ink-bleed: ink-bleed var(--duration-slow) var(--ease-ink) forwards;
+}
+
+/* Durations as plain custom properties — Tailwind has no duration theme
+   namespace, so these compose into the animations above and any custom GL/
+   transition timing. Bare utilities (duration-150 etc.) still work. */
+:root {
+  --duration-fast: 150ms;
+  --duration-base: 280ms;
+  --duration-slow: 520ms;
+  --duration-draw: 1400ms;
+  /* Non-utility widths: DS strong/frame borders sit at 1.5px (no Tailwind step). */
+  --border-strong: 1.5px;
+  --border-frame: 1.5px;
+}
+
+@keyframes draw-in {
+  from {
+    stroke-dashoffset: var(--draw-length, 300);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ink-bleed {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+/* Signature "a line drawing itself" — sets the dash geometry an SVG stroke
+   needs alongside the animation. Override the length per element with
+   --draw-length. Utilities can't set dasharray + offset + animation together. */
+@utility draw-in {
+  stroke-dasharray: var(--draw-length, 300);
+  stroke-dashoffset: var(--draw-length, 300);
+  animation: var(--animate-draw-in);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink-950);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Ink-flavoured links: never a tint — fade toward secondary on hover. */
+  a {
+    color: currentColor;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  a:hover {
+    color: var(--color-ink-600);
+  }
+}
+
+/* Respect reduced-motion — collapse the signature entrances to instant. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Hide the OS cursor site-wide; the WebGL glass lens replaces it.
    Unlayered !important so it also overrides link/button cursors and
    Tailwind's cursor-* utilities. */
