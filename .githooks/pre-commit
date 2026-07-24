@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+#
+# Guard against accidental commits on the wrong branch.
+# Refuses commits made directly on a protected branch (main) so feature work
+# always lands on its own branch. Start a feature with:  pnpm feature <name>
+#
+# Bypass once, deliberately:  ALLOW_COMMIT_ON_MAIN=1 git commit ...
+set -euo pipefail
+
+protected="main master"
+
+# Detached HEAD (rebase / bisect / cherry-pick in progress): nothing to guard.
+branch="$(git symbolic-ref --short -q HEAD || true)"
+[ -z "$branch" ] && exit 0
+
+for p in $protected; do
+  [ "$branch" = "$p" ] || continue
+
+  if [ "${ALLOW_COMMIT_ON_MAIN:-}" = "1" ]; then
+    echo "pre-commit: ALLOW_COMMIT_ON_MAIN=1 set — allowing commit on '$branch'." >&2
+    exit 0
+  fi
+
+  cat >&2 <<EOF
+
+  ✗ Refusing to commit directly on '$branch'.
+
+    Move your work onto a feature branch first (your staged changes come along):
+
+        pnpm feature <type>/<description>     # e.g. pnpm feature feat/artist-gallery
+
+    …or manually:
+
+        git fetch origin main
+        git switch -c <type>/<description> origin/main
+
+    Deliberate one-off override:  ALLOW_COMMIT_ON_MAIN=1 git commit ...
+
+EOF
+  exit 1
+done
+
+exit 0
