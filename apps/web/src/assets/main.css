@@ -1,1 +1,10 @@
 @import 'tailwindcss';
+
+/* Hide the OS cursor site-wide; the WebGL glass lens replaces it.
+   Unlayered !important so it also overrides link/button cursors and
+   Tailwind's cursor-* utilities. */
+*,
+*::before,
+*::after {
+  cursor: none !important;
+}
