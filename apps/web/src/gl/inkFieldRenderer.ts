@@ -256,6 +256,10 @@ void main() {
 const PAPER_COLOR: readonly [number, number, number] = [0xfa / 255, 0xf8 / 255, 0xf2 / 255]
 /** Ink stroke colour, matching --color-ink-800. */
 const INK_COLOR: readonly [number, number, number] = [0x28 / 255, 0x24 / 255, 0x1f / 255]
+/** Dark-theme field, a deep warm near-black (≈ --color-ink-950). */
+const PAPER_DARK: readonly [number, number, number] = [0x10 / 255, 0x0e / 255, 0x0c / 255]
+/** Dark-theme stroke, a warm light thread (≈ --color-ink-300) so lines read. */
+const INK_DARK: readonly [number, number, number] = [0xc2 / 255, 0xbb / 255, 0xad / 255]
 /** Number of threads across the viewport height. */
 const DEFAULT_LINE_COUNT = 28
 /** Samples along each thread ribbon; higher = smoother curves when tangled. */
@@ -330,6 +334,7 @@ export class InkFieldRenderer {
   private readonly depthBuffer: WebGLRenderbuffer
 
   private raf = 0
+  private dark = false // theme: swaps the paper field & ink thread palette
   private readonly startTime = performance.now()
   private pointer: [number, number] = [-1, 2] // uv space, offscreen
   private converge = 0 // scroll progress 0..1; gathers lanes to centre
@@ -420,6 +425,13 @@ export class InkFieldRenderer {
     this.lastMoveTime = Number.NEGATIVE_INFINITY
   }
 
+  /** Switch between the light (paper/ink) and dark (near-black/light) palettes. */
+  setTheme(isDark: boolean): void {
+    if (this.dark === isDark) return
+    this.dark = isDark
+    if (!this.raf) this.render() // reflect the swap while paused (reduced motion)
+  }
+
   /**
    * Scroll progress: 0 at the top of the page, 1 at the bottom. Each lane
    * travels toward the centre as this rises, at its own speed.
@@ -478,11 +490,14 @@ export class InkFieldRenderer {
     const time = timeOverride ?? (performance.now() - this.startTime) / 1000
     const w = this.canvas.width
     const h = this.canvas.height
+    // theme palette: the casing must match the field so the weave masks cleanly
+    const bg = this.dark ? PAPER_DARK : PAPER_COLOR
+    const ink = this.dark ? INK_DARK : this.inkColor
 
     // --- weave into the offscreen target ---
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo)
     gl.viewport(0, 0, w, h)
-    gl.clearColor(PAPER_COLOR[0], PAPER_COLOR[1], PAPER_COLOR[2], 1)
+    gl.clearColor(bg[0], bg[1], bg[2], 1)
     gl.clearDepth(1)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.enable(gl.DEPTH_TEST)
@@ -502,7 +517,7 @@ export class InkFieldRenderer {
     gl.depthMask(true)
     gl.disable(gl.BLEND)
     gl.uniform1f(u.halfWidth, CASING_HALF_WIDTH * this.pixelDensity)
-    gl.uniform3f(u.color, PAPER_COLOR[0], PAPER_COLOR[1], PAPER_COLOR[2])
+    gl.uniform3f(u.color, bg[0], bg[1], bg[2])
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, this.stripVertices, this.instanceCount)
 
     // pass 2 — ink core: blended, occluded by nearer casings (the weave)
@@ -511,7 +526,7 @@ export class InkFieldRenderer {
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
     gl.uniform1f(u.halfWidth, INK_HALF_WIDTH * this.pixelDensity)
-    gl.uniform3f(u.color, this.inkColor[0], this.inkColor[1], this.inkColor[2])
+    gl.uniform3f(u.color, ink[0], ink[1], ink[2])
     gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, this.stripVertices, this.instanceCount)
 
     gl.depthMask(true)

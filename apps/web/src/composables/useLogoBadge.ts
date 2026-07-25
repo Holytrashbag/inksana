@@ -1,6 +1,7 @@
-import { onMounted, onUnmounted, type Ref } from 'vue'
+import { onMounted, onUnmounted, watch, type Ref } from 'vue'
 
 import { LogoBadgeRenderer, type LogoBadgeOptions } from '@/gl/logoBadgeRenderer'
+import { useTheme } from '@/composables/useTheme'
 
 export type UseLogoBadgeOptions = Pick<LogoBadgeOptions, 'pixelDensity'>
 
@@ -20,6 +21,9 @@ export function useLogoBadge(
   options: UseLogoBadgeOptions = {},
 ): UseLogoBadgeReturn {
   let renderer: LogoBadgeRenderer | null = null
+  const { isDark } = useTheme()
+  // registered in setup scope, so it disposes with the component
+  watch(isDark, (dark) => renderer?.setTheme(dark))
 
   const prefersReducedMotion = () =>
     typeof window.matchMedia === 'function' &&
@@ -46,6 +50,7 @@ export function useLogoBadge(
       console.warn('[useLogoBadge] disabled:', error)
       return
     }
+    renderer.setTheme(isDark.value)
 
     if (prefersReducedMotion()) {
       // present a single calm frame, no animation

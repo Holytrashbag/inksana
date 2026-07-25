@@ -22,7 +22,7 @@ useCursorFish(fish, { width: FISH_W, height: FISH_H })
     stroke-width="1.6"
     stroke-linecap="round"
     stroke-linejoin="round"
-    class="pointer-events-none fixed left-0 top-0 z-40 origin-center text-ink-900 opacity-0 transition-opacity duration-300 will-change-transform"
+    class="pointer-events-none fixed left-0 top-0 z-40 origin-center text-ink-900 opacity-0 transition-opacity duration-300 will-change-transform dark:text-ink-100"
     aria-hidden="true"
   >
     <!-- abstract single-weight koi: one flowing body-into-tail gesture, sweeping fins, an eye -->

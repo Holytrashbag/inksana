@@ -145,17 +145,15 @@ uniform vec2 uTexel;
 uniform vec2 uResolution;
 uniform float uTime;
 uniform float uAspect;
+// palette — set per theme from JS so the ink field & spilled pigment invert
+uniform vec3 uPaper;    // page field (light paper / dark near-black)
+uniform vec3 uInk;      // topographic linework
+uniform vec3 uPigThin;  // spilled pigment where it bleeds thin
+uniform vec3 uPigThick; // spilled pigment where it pools thick
 in vec2 vUv;
 out vec4 frag;
 
-// palette — warm paper + near-black ink, with one restrained warm accent
-const vec3 PAPER  = vec3(0.980, 0.972, 0.949);
-const vec3 INK    = vec3(0.102, 0.090, 0.078);
 const vec3 ACCENT = vec3(0.659, 0.133, 0.173); // deep vermilion, used sparingly
-// Spilled pigment ramp: thin bleed reads indigo-blue, dense pools go near-black,
-// so a single spill shows both blue edges and a black core (ink-in-water).
-const vec3 PIG_BLUE  = vec3(0.09, 0.20, 0.42);
-const vec3 PIG_BLACK = vec3(0.03, 0.035, 0.05);
 
 // contour density + wave influence
 const float LINES = 3.4;   // higher = more topographic lines
@@ -202,14 +200,14 @@ void main() {
   // quantize into a few ink levels for a printed / linocut feel
   tone = floor(tone * LEVELS + 0.5) / LEVELS;
 
-  vec3 col = mix(PAPER, INK, tone);
+  vec3 col = mix(uPaper, uInk, tone);
   // a whisper of warm only in the deepest ink pools
   col = mix(col, ACCENT, smoothstep(0.78, 1.0, tone) * 0.12);
 
-  // spilled pigment (channel b): blue where thin, black where it pools thick
+  // spilled pigment (channel b): thin bleed vs thick pool, per theme
   float dye = texture(uState, vUv).b;
   float amt = 1.0 - exp(-dye * 3.0);
-  vec3 pigment = mix(PIG_BLUE, PIG_BLACK, amt);
+  vec3 pigment = mix(uPigThin, uPigThick, amt);
   col = mix(col, pigment, amt);
 
   // paper grain + soft vignette
@@ -218,6 +216,26 @@ void main() {
   frag = vec4(col, 1.0);
 }
 `
+
+// Render palette per theme: [paper/field, ink linework, pigment-thin, pigment-thick].
+type Palette = {
+  paper: readonly [number, number, number]
+  ink: readonly [number, number, number]
+  pigThin: readonly [number, number, number]
+  pigThick: readonly [number, number, number]
+}
+const LIGHT_PALETTE: Palette = {
+  paper: [0.98, 0.972, 0.949],
+  ink: [0.102, 0.09, 0.078],
+  pigThin: [0.09, 0.2, 0.42], // indigo bleed
+  pigThick: [0.03, 0.035, 0.05], // near-black core
+}
+const DARK_PALETTE: Palette = {
+  paper: [0.055, 0.05, 0.043], // deep warm near-black field
+  ink: [0.86, 0.83, 0.76], // warm light linework
+  pigThin: [0.34, 0.5, 0.78], // brighter indigo so the bleed glows on dark
+  pigThick: [0.82, 0.86, 0.94], // pale core where the pigment pools
+}
 
 type Target = { tex: WebGLTexture; fbo: WebGLFramebuffer }
 
@@ -258,6 +276,7 @@ export class WaterRenderer {
   private py = 0.5
   private hasPointer = false
   private lastInteract = -1e9
+  private palette: Palette = LIGHT_PALETTE
 
   private readonly t0 = performance.now()
   private last = performance.now()
@@ -301,6 +320,10 @@ export class WaterRenderer {
       'uResolution',
       'uTime',
       'uAspect',
+      'uPaper',
+      'uInk',
+      'uPigThin',
+      'uPigThick',
     ])
 
     const vao = gl.createVertexArray()
@@ -337,6 +360,14 @@ export class WaterRenderer {
 
   clearPointer(): void {
     this.hasPointer = false
+  }
+
+  /** Switch the render palette between the light and dark themes. */
+  setTheme(isDark: boolean): void {
+    const next = isDark ? DARK_PALETTE : LIGHT_PALETTE
+    if (this.palette === next) return
+    this.palette = next
+    if (!this.running) this.render() // reflect the swap while paused
   }
 
   start(): void {
@@ -439,6 +470,11 @@ export class WaterRenderer {
     gl.uniform2f(this.uRender.uResolution ?? null, canvas.width, canvas.height)
     gl.uniform1f(this.uRender.uTime ?? null, this.now())
     gl.uniform1f(this.uRender.uAspect ?? null, this.vw / this.vh)
+    const p = this.palette
+    gl.uniform3f(this.uRender.uPaper ?? null, p.paper[0], p.paper[1], p.paper[2])
+    gl.uniform3f(this.uRender.uInk ?? null, p.ink[0], p.ink[1], p.ink[2])
+    gl.uniform3f(this.uRender.uPigThin ?? null, p.pigThin[0], p.pigThin[1], p.pigThin[2])
+    gl.uniform3f(this.uRender.uPigThick ?? null, p.pigThick[0], p.pigThick[1], p.pigThick[2])
     gl.drawArrays(gl.TRIANGLES, 0, 3)
   }
 

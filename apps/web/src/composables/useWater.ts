@@ -1,6 +1,7 @@
-import { onMounted, onUnmounted, type Ref } from 'vue'
+import { onMounted, onUnmounted, watch, type Ref } from 'vue'
 
 import { WaterRenderer, type WaterOptions } from '@/gl/waterRenderer'
+import { useTheme } from '@/composables/useTheme'
 
 export type UseWaterOptions = Pick<WaterOptions, 'pixelDensity'>
 
@@ -19,6 +20,9 @@ export function useWater(
   options: UseWaterOptions = {},
 ): UseWaterReturn {
   let renderer: WaterRenderer | null = null
+  const { isDark } = useTheme()
+  // registered in setup scope, so it disposes with the component
+  watch(isDark, (dark) => renderer?.setTheme(dark))
 
   const prefersReducedMotion = () =>
     typeof window.matchMedia === 'function' &&
@@ -45,6 +49,7 @@ export function useWater(
       console.warn('[useWater] disabled:', error)
       return
     }
+    renderer.setTheme(isDark.value)
 
     if (prefersReducedMotion()) {
       // present a single calm frame, no animation

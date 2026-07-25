@@ -30,13 +30,32 @@ export type { LogoBadgeOptions }
 /** World-space size the mesh's largest dimension is scaled to. */
 const TARGET_SIZE = 1.7
 
-// Shared pencil GLSL (studio palette + the webgl-shaders cross-hatch), injected
-// into both the badge material and the paper background.
-const PENCIL_COMMON = /* glsl */ `
-const vec3 PAPER = vec3(0.980, 0.972, 0.949);
-const vec3 GRAPHITE = vec3(0.098, 0.090, 0.082);
-const vec3 STEEL = vec3(0.62, 0.66, 0.72);
+// Scene palette per theme. The badge keeps light highlights / dark recesses in
+// both (a lit metal signet), while the background field and the cursor-disc
+// hatch invert. In dark, the recess tone lifts slightly so the badge stays clear
+// of the darker field behind it.
+type BadgePalette = {
+  paper: readonly [number, number, number] // badge highlight
+  graphite: readonly [number, number, number] // badge recess
+  bg: readonly [number, number, number] // page field
+  ringInk: readonly [number, number, number] // cursor-disc hatch
+}
+const LIGHT_PALETTE: BadgePalette = {
+  paper: [0.98, 0.972, 0.949],
+  graphite: [0.098, 0.09, 0.082],
+  bg: [0.98, 0.972, 0.949],
+  ringInk: [0.098, 0.09, 0.082],
+}
+const DARK_PALETTE: BadgePalette = {
+  paper: [0.9, 0.88, 0.83], // brushed-silver highlight
+  graphite: [0.16, 0.15, 0.13], // lifted charcoal recess
+  bg: [0.043, 0.039, 0.035], // darker than the recess so the badge reads
+  ringInk: [0.86, 0.83, 0.76], // light hatch on the dark field
+}
 
+// Shared pencil GLSL (the webgl-shaders cross-hatch helpers). Palette colours are
+// passed per-shader as uniforms so the scene can invert for the dark theme.
+const PENCIL_COMMON = /* glsl */ `
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
@@ -91,8 +110,12 @@ const BADGE_FRAG = /* glsl */ `
 precision highp float;
 uniform vec2 uResolution;
 uniform float uPixelDensity;
+uniform vec3 uPaper;    // bright facet / highlight tone
+uniform vec3 uGraphite; // shaded facet / recess tone
 in vec3 vViewPos;
 out vec4 outColor;
+
+const vec3 STEEL = vec3(0.62, 0.66, 0.72);
 
 ${PENCIL_COMMON}
 
@@ -119,7 +142,7 @@ void main() {
   vec2 fpx = (gl_FragCoord.xy - 0.5 * uResolution) / uPixelDensity;
   float tone = pencilTone(fpx, df);
 
-  vec3 col = mix(GRAPHITE, PAPER, tone);
+  vec3 col = mix(uGraphite, uPaper, tone);
   col = mix(col, STEEL, spec * 0.18);          // faint metallic sheen
   col *= 1.0 - 0.06 * hash(gl_FragCoord.xy);    // graphite grain
   outColor = vec4(col, 1.0);
@@ -134,6 +157,7 @@ const BG_FRAG = /* glsl */ `
 precision highp float;
 uniform vec2 uResolution;
 uniform float uTime;
+uniform vec3 uBg; // page field behind the badge
 out vec4 outColor;
 
 ${PENCIL_COMMON}
@@ -142,7 +166,7 @@ void main() {
   float m = min(uResolution.x, uResolution.y);
   vec2 uv = (2.0 * gl_FragCoord.xy - uResolution) / m;
 
-  vec3 col = PAPER;
+  vec3 col = uBg;
   col -= (hash(gl_FragCoord.xy + fract(uTime)) - 0.5) * 0.02; // paper grain
   col *= mix(0.9, 1.0, smoothstep(1.4, 0.2, length(uv)));     // soft vignette
   outColor = vec4(col, 1.0);
@@ -159,6 +183,7 @@ uniform vec2 uResolution;
 uniform vec2 uMouse;         // -1..1, y up (matches uv space below)
 uniform float uPointerAlpha; // 0..1 fade as the pointer enters / leaves
 uniform float uPixelDensity;
+uniform vec3 uRingInk;       // hatch colour of the cursor disc
 out vec4 outColor;
 
 ${PENCIL_COMMON}
@@ -178,7 +203,7 @@ void main() {
 
   float alpha = clamp(ink * mask, 0.0, 1.0) * 0.7 * uPointerAlpha;
   if (alpha < 0.002) discard;
-  outColor = vec4(GRAPHITE, alpha);
+  outColor = vec4(uRingInk, alpha);
 }
 `
 
@@ -205,6 +230,14 @@ export class LogoBadgeRenderer {
   private readonly uTime = { value: 0 }
   private readonly uMouse = new THREE.Vector2(0, 0)
   private readonly uPointerAlpha = { value: 0 }
+
+  // theme palette, shared into the three materials as plain vec3 uniforms
+  // (Vector3, not THREE.Color, to bypass colour-space conversion)
+  private readonly uPaper = new THREE.Vector3()
+  private readonly uGraphite = new THREE.Vector3()
+  private readonly uBg = new THREE.Vector3()
+  private readonly uRingInk = new THREE.Vector3()
+  private palette: BadgePalette = LIGHT_PALETTE
 
   private px = 0
   private py = 0
@@ -247,6 +280,7 @@ export class LogoBadgeRenderer {
       uniforms: {
         uResolution: { value: this.uResolution },
         uTime: this.uTime,
+        uBg: { value: this.uBg },
       },
     })
     const bgQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.bgMaterial)
@@ -260,6 +294,8 @@ export class LogoBadgeRenderer {
       uniforms: {
         uResolution: { value: this.uResolution },
         uPixelDensity: { value: this.pixelDensity },
+        uPaper: { value: this.uPaper },
+        uGraphite: { value: this.uGraphite },
       },
     })
 
@@ -275,12 +311,14 @@ export class LogoBadgeRenderer {
         uMouse: { value: this.uMouse },
         uPointerAlpha: this.uPointerAlpha,
         uPixelDensity: { value: this.pixelDensity },
+        uRingInk: { value: this.uRingInk },
       },
     })
     const ringQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.ringMaterial)
     ringQuad.frustumCulled = false
     this.ringScene.add(ringQuad)
 
+    this.applyPalette() // seed the light palette into the shared uniforms
     this.resize()
     this.loadModel()
   }
@@ -298,6 +336,15 @@ export class LogoBadgeRenderer {
     // keep px/py so the ring fades in place; the tilt returns to centre via
     // the hasPointer-gated target in the frame loop.
     this.hasPointer = false
+  }
+
+  /** Switch the scene palette between the light and dark themes. */
+  setTheme(isDark: boolean): void {
+    const next = isDark ? DARK_PALETTE : LIGHT_PALETTE
+    if (this.palette === next) return
+    this.palette = next
+    this.applyPalette()
+    if (!this.running) this.renderOnce((performance.now() - this.t0) / 1000)
   }
 
   start(): void {
@@ -416,6 +463,14 @@ export class LogoBadgeRenderer {
   }
 
   // --- helpers ---------------------------------------------------------------
+
+  private applyPalette(): void {
+    const p = this.palette
+    this.uPaper.set(p.paper[0], p.paper[1], p.paper[2])
+    this.uGraphite.set(p.graphite[0], p.graphite[1], p.graphite[2])
+    this.uBg.set(p.bg[0], p.bg[1], p.bg[2])
+    this.uRingInk.set(p.ringInk[0], p.ringInk[1], p.ringInk[2])
+  }
 
   private disposeModel(): void {
     if (!this.model) return
