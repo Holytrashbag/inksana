@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+/* Dark theme is class-driven (toggled on <html> by useTheme), not media-driven,
+   so a manual switch can override the OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Brand fonts — self-hosted (GDPR-safe). Variable TTFs live in
    apps/web/assets/fonts/; Vite hashes & bundles them from these relative URLs.
    Playfair Display (display serif, wght 400–900) + Archivo (body/UI grotesk,
@@ -163,6 +167,23 @@
   --border-frame: 1.5px;
 }
 
+/* Dark theme — invert only what the *semantic* tokens resolve to. The ink/paper
+   scales stay as-is; "surface" drops to the near-black end and "hairline"/veil
+   follow, so every bg-surface / border-hairline utility flips without touching
+   the components. Foreground swaps happen per-element via dark: text utilities. */
+.dark {
+  --color-surface: var(--color-ink-950);
+  --color-surface-card: var(--color-ink-900);
+  --color-surface-sunken: var(--color-ink-900);
+  --color-hairline: var(--color-ink-700);
+  --color-scrim: rgb(0 0 0 / 0.72);
+  --color-veil: rgb(13 12 11 / 0.86);
+  /* elevation needs real darkness to register against a dark field */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.5), 0 16px 40px -16px rgb(0 0 0 / 0.8);
+  --shadow-focus: 0 0 0 2px var(--color-ink-950), 0 0 0 4px var(--color-paper);
+}
+
 @keyframes draw-in {
   from {
     stroke-dashoffset: var(--draw-length, 300);
@@ -219,6 +240,9 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  .dark body {
+    color: var(--color-ink-50);
+  }
 
   /* Ink-flavoured links: never a tint — fade toward secondary on hover. */
   a {
@@ -228,6 +252,9 @@
   }
   a:hover {
     color: var(--color-ink-600);
+  }
+  .dark a:hover {
+    color: var(--color-ink-300);
   }
 }
 

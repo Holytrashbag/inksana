@@ -4,7 +4,7 @@
        grain. Everything expressible as utilities lives here; the grain image and
        the reduced-transparency fallback are the only bits that can't. -->
   <div
-    class="glass-panel relative isolate overflow-hidden rounded-frame border border-white/40 bg-transparent shadow-[var(--shadow-raised),inset_0_1px_0_rgb(255_255_255/0.65),inset_0_-1px_1px_rgb(13_12_11/0.05)] backdrop-blur-xs backdrop-saturate-[1.6]"
+    class="glass-panel relative isolate overflow-hidden rounded-frame border border-white/40 bg-transparent shadow-[var(--shadow-raised),inset_0_1px_0_rgb(255_255_255/0.65),inset_0_-1px_1px_rgb(13_12_11/0.05)] backdrop-blur-xs backdrop-saturate-[1.6] dark:border-white/12"
   >
     <!-- top-down gloss — the light catching the glass surface -->
     <div
