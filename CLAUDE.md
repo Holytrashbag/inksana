@@ -59,12 +59,14 @@ The web app consumes Strapi over its **REST API** (`/api/*`). Point the frontend
 
 ## WebGL2
 
-Used for two things, written as **raw WebGL2** (no Three.js/Pixi wrapper):
+Used for two things, written by default as **raw WebGL2** (no wrapper):
 
 1. Background / hero visual effects.
 2. Design & AR previews — rendering and warping tattoo designs onto photos.
 
 Keep GL code isolated behind composables/modules; manage context, programs, and buffers explicitly and dispose of them on unmount. Assume WebGL2 (not WebGL1) features are available.
+
+**three.js is permitted** where raw WebGL2 would be disproportionate effort — chiefly loading and rendering glTF/GLB meshes (e.g. the `/home3` logo-badge hero uses `three` + `GLTFLoader`). It lives in the `apps/web` workspace. Still isolate it behind a composable/module and dispose of every three resource (geometries, materials, renderer) on unmount, exactly as for raw GL. Prefer raw WebGL2 for shader-only / fullscreen-effect work where three adds no leverage.
 
 ## Tailwind CSS
 
