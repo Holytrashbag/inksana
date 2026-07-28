@@ -183,8 +183,14 @@ void main() {
 
   vec2 p = vUv * vec2(uAspect, 1.0);
 
+  // Bound the time magnitude fed into the noise: many mobile GPUs implement
+  // "highp" fragment precision as effective mediump, and fbm/hash lose
+  // structure (read back as a grid) once their input gets large. The wrap
+  // period is long enough that nobody will sit on the page to see the seam.
+  float wt = mod(uTime, 1000.0);
+
   // slowly drifting domain-warped marble — the always-present ink structure
-  vec2 warp = vec2(fbm(p * 1.5 + uTime * 0.02), fbm(p * 1.5 + vec2(3.1, 1.7) - uTime * 0.016));
+  vec2 warp = vec2(fbm(p * 1.5 + wt * 0.02), fbm(p * 1.5 + vec2(3.1, 1.7) - wt * 0.016));
   float base = fbm(p * 2.0 + warp * 1.2);
 
   // wave height warps the contour field, so ripples visibly ripple the lines
@@ -210,8 +216,10 @@ void main() {
   vec3 pigment = mix(uPigThin, uPigThick, amt);
   col = mix(col, pigment, amt);
 
-  // paper grain + soft vignette
-  col -= (hash(vUv * uResolution + fract(uTime)) - 0.5) * 0.02;
+  // paper grain + soft vignette — tile the pixel coordinate so grain input
+  // magnitude stays bounded on large/high-DPI (mobile) drawing buffers too
+  vec2 grainPx = mod(vUv * uResolution, 512.0);
+  col -= (hash(grainPx + fract(uTime)) - 0.5) * 0.02;
   col *= mix(0.94, 1.0, smoothstep(1.1, 0.3, length((vUv - 0.5) * vec2(uAspect, 1.0))));
   frag = vec4(col, 1.0);
 }
