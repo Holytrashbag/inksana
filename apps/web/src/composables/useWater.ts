@@ -36,6 +36,15 @@ export function useWater(
     renderer?.setPointer(event.clientX / window.innerWidth, event.clientY / window.innerHeight)
   }
   const onPointerLeave = () => renderer?.clearPointer()
+  // Pointer events get cancelled once a mobile browser claims a gesture as a
+  // page scroll, so a swipe stops driving pointermove partway through. touch*
+  // events keep firing for the whole gesture even while the page scrolls.
+  const onTouchMove = (event: TouchEvent) => {
+    const touch = event.touches[0]
+    if (touch)
+      renderer?.setPointer(touch.clientX / window.innerWidth, touch.clientY / window.innerHeight)
+  }
+  const onTouchEnd = () => renderer?.clearPointer()
   const onResize = () => renderer?.resize()
   // pause when the tab is hidden so the loop doesn't accumulate a huge dt jump
   const onVisibility = () => {
@@ -63,6 +72,9 @@ export function useWater(
       renderer.start()
       window.addEventListener('pointermove', onPointerMove, { passive: true })
       window.addEventListener('pointerout', onPointerLeave)
+      window.addEventListener('touchmove', onTouchMove, { passive: true })
+      window.addEventListener('touchend', onTouchEnd)
+      window.addEventListener('touchcancel', onTouchEnd)
       document.addEventListener('visibilitychange', onVisibility)
     }
 
@@ -72,6 +84,9 @@ export function useWater(
   onUnmounted(() => {
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerout', onPointerLeave)
+    window.removeEventListener('touchmove', onTouchMove)
+    window.removeEventListener('touchend', onTouchEnd)
+    window.removeEventListener('touchcancel', onTouchEnd)
     window.removeEventListener('resize', onResize)
     document.removeEventListener('visibilitychange', onVisibility)
     renderer?.dispose()
