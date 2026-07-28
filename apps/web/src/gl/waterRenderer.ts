@@ -291,6 +291,12 @@ export class WaterRenderer {
       alpha: false,
       depth: false,
       powerPreference: 'high-performance',
+      // GlassPanel samples this canvas as a live texImage2D source. Without this,
+      // the browser is free to clear the drawing buffer whenever it isn't freshly
+      // re-presented — which is exactly what happens for the whole time this
+      // canvas sits stopped in a backgrounded tab — and each browser handles that
+      // differently (observed as solid black in Firefox, static in Chrome).
+      preserveDrawingBuffer: true,
     })
     if (!gl) throw new Error('WebGL2 unavailable')
     if (

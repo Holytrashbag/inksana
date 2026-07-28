@@ -43,6 +43,19 @@ export function useGlassPanel(
     rafId = requestAnimationFrame(frame)
   }
 
+  // pause while hidden, same as WaterField/CustomCursor — otherwise this keeps
+  // re-sampling the (possibly stopped) background canvas for the whole time
+  // the tab is backgrounded, for no visible benefit
+  const onVisibility = () => {
+    if (prefersReducedMotion()) return
+    if (document.hidden) {
+      if (rafId) cancelAnimationFrame(rafId)
+      rafId = 0
+    } else if (!rafId) {
+      rafId = requestAnimationFrame(frame)
+    }
+  }
+
   let resizeObserver: ResizeObserver | null = null
 
   onMounted(() => {
@@ -69,6 +82,7 @@ export function useGlassPanel(
       }
     } else {
       rafId = requestAnimationFrame(frame)
+      document.addEventListener('visibilitychange', onVisibility)
     }
   })
 
@@ -82,6 +96,7 @@ export function useGlassPanel(
 
   onUnmounted(() => {
     window.removeEventListener('resize', resize)
+    document.removeEventListener('visibilitychange', onVisibility)
     resizeObserver?.disconnect()
     resizeObserver = null
     if (rafId) cancelAnimationFrame(rafId)
