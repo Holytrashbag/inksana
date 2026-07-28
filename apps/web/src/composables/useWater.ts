@@ -1,6 +1,7 @@
 import { onMounted, onUnmounted, watch, type Ref } from 'vue'
 
 import { WaterRenderer, type WaterOptions } from '@/gl/waterRenderer'
+import { hexToRgb01, resolveInkHex, useInkColor } from '@/composables/useInkColor'
 import { useTheme } from '@/composables/useTheme'
 
 export type UseWaterOptions = Pick<WaterOptions, 'pixelDensity'>
@@ -21,8 +22,11 @@ export function useWater(
 ): UseWaterReturn {
   let renderer: WaterRenderer | null = null
   const { isDark } = useTheme()
-  // registered in setup scope, so it disposes with the component
+  const { accent } = useInkColor()
+  // registered in setup scope, so it disposes with the component. The neutral
+  // slot isn't stored, so theme changes alone can flip the resolved ink color.
   watch(isDark, (dark) => renderer?.setTheme(dark))
+  watch([accent, isDark], ([name, dark]) => renderer?.setInk(hexToRgb01(resolveInkHex(name, dark))))
 
   const prefersReducedMotion = () =>
     typeof window.matchMedia === 'function' &&
@@ -50,6 +54,7 @@ export function useWater(
       return
     }
     renderer.setTheme(isDark.value)
+    renderer.setInk(hexToRgb01(resolveInkHex(accent.value, isDark.value)))
 
     if (prefersReducedMotion()) {
       // present a single calm frame, no animation

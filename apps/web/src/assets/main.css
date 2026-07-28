@@ -77,12 +77,21 @@
   --color-hairline: var(--color-ink-200); /* border-hairline */
   --color-scrim: rgb(13 12 11 / 0.72); /* bg-scrim — modal overlay */
   --color-veil: rgb(250 248 242 / 0.86); /* bg-veil — sticky header wash */
+  --color-accent-grey: var(--color-ink-200); /* accent color option */
+  --color-accent-blood: var(--color-blood); /* accent color option */
+  --color-accent-ink: var(--color-ink-950); /* accent color option */
+  --color-accent-purple: rgb(149, 97, 205); /* accent color option */
+  --color-accent-blue: rgb(66 85 179); /* accent color option */
+  --color-accent-green: rgb(30 205 115); /* accent color option */
 
   /* ---- Type ----------------------------------------------------------- */
   --font-display: 'Playfair Display', ui-serif, Georgia, serif;
   --font-body: 'Archivo', ui-sans-serif, system-ui, sans-serif;
 
   /* Display scale — fluid, tight leading, tight tracking */
+  --text-display-title: clamp(6rem, 8.5vw, 9rem);
+  --text-display-title--line-height: 1.05;
+  --text-display-title--letter-spacing: -0.02em;
   --text-display-xl: clamp(3.5rem, 6vw, 7rem);
   --text-display-xl--line-height: 1.05;
   --text-display-xl--letter-spacing: -0.02em;
@@ -269,8 +278,8 @@
   }
 }
 
-/* Hide the OS cursor site-wide; the WebGL glass lens replaces it.
-   Unlayered !important so it also overrides link/button cursors and
+/* Hide the OS cursor site-wide; CustomCursor.vue replaces it with a stroked
+   ring. Unlayered !important so it also overrides link/button cursors and
    Tailwind's cursor-* utilities. */
 *,
 *::before,

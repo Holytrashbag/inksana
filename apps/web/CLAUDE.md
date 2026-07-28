@@ -46,7 +46,7 @@ Strict but pragmatic.
 
 ## WebGL2
 
-- Raw WebGL2 by default — assume WebGL2 features are available. **three.js is permitted** for glTF/GLB mesh loading and rendering where raw WebGL2 would be disproportionate (e.g. `src/gl/logoBadgeRenderer.ts` on `/home3`). Reach for raw GL for shader-only / fullscreen effects.
+- Raw WebGL2 by default — assume WebGL2 features are available. **three.js is permitted** for glTF/GLB mesh loading and rendering where raw WebGL2 would be disproportionate. It is not currently a dependency; add it if such a need arises. Reach for raw GL for shader-only / fullscreen effects.
 - **Isolate GL behind composables/modules** (e.g. `src/composables/` or a dedicated `src/gl/` module). Components should not touch the raw context directly. The same applies to three — keep the scene/renderer inside the module, not the SFC.
 - **Own the lifecycle explicitly.** Create context, programs, and buffers deliberately; dispose of every GL resource (for three: geometries, materials, and the renderer) and cancel the render loop on `onUnmounted`. Route changes must not leak contexts.
 - **three ShaderMaterial gotcha:** with `glslVersion: THREE.GLSL3`, three does *not* declare a fragment output — declare your own `out vec4` and use explicit `in`/`out` varyings (not `gl_FragColor`).

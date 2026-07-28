@@ -20,20 +20,20 @@ const SIM = 256
 const MAX_DROPS = 12
 
 // --- interaction / motion (JS side) ---------------------------------------
-const BRUSH_RADIUS = 0.032
+const BRUSH_RADIUS = 0.025
 const BRUSH_BASE = 0.01
-const BRUSH_GAIN = 0.8
+const BRUSH_GAIN = 0.9
 const BRUSH_MAX = 0.08
 /** Pigment injected at the cursor each sim step while the pointer is on-screen. */
-const PAINT_INJECT = 0.018
+const PAINT_INJECT = 0.02
 
 // Autonomous ripple emitters. Disabled (count 0): self-generated ripples that
 // ramped up once the pointer went idle read as "uncanny" motion-without-cause.
 // The surface's life now comes only from the drifting marble base + the cursor;
 // bump AMBIENT_COUNT back up for an auto-animated surface.
 const AMBIENT_COUNT = 0
-const AMBIENT_STRENGTH = 0.016
-const AMBIENT_RATE = 0.6 // slower than the reference (1.0) — calmer surface
+const AMBIENT_STRENGTH = 0.001
+const AMBIENT_RATE = 0.01 // slower than the reference (1.0) — calmer surface
 const IDLE_AFTER = 2.2 // s of no pointer before ambient runs at full strength
 const DRIVEN_MULT = 0.45 // ambient strength while the user is actively stirring
 
@@ -73,9 +73,9 @@ out vec4 o;
 const float PROP = 0.2;    // propagation speed (lower = slower ripples)
 const float DAMP = 0.985;   // lower = ripples settle sooner after a gesture
 const float CLAMP_H = 1.6;
-const float DIFFUSE = 0.1;     // how fast spilled pigment spreads (keep < 0.25)
+const float DIFFUSE = 0.08;     // how fast spilled pigment spreads (keep < 0.25)
 const float DYE_DECAY = 0.999;  // per-step fade — near 1.0 so spills linger far longer
-const float PAINT_R = 0.02;   // radius of the pigment injected at the cursor
+const float PAINT_R = 0.01;   // radius of the pigment injected at the cursor
 
 // Verlet wave update at an arbitrary sample point (no impulses). Used both for
 // interior cells and, at the border, to look up the neighbour's *next* value.
@@ -277,6 +277,7 @@ export class WaterRenderer {
   private hasPointer = false
   private lastInteract = -1e9
   private palette: Palette = LIGHT_PALETTE
+  private inkOverride: readonly [number, number, number] | null = null
 
   private readonly t0 = performance.now()
   private last = performance.now()
@@ -368,6 +369,12 @@ export class WaterRenderer {
     if (this.palette === next) return
     this.palette = next
     if (!this.running) this.render() // reflect the swap while paused
+  }
+
+  /** Override the linework color, or pass null to fall back to the theme's ink. */
+  setInk(rgb: readonly [number, number, number] | null): void {
+    this.inkOverride = rgb
+    if (!this.running) this.render() // reflect the change while paused
   }
 
   start(): void {
@@ -471,8 +478,9 @@ export class WaterRenderer {
     gl.uniform1f(this.uRender.uTime ?? null, this.now())
     gl.uniform1f(this.uRender.uAspect ?? null, this.vw / this.vh)
     const p = this.palette
+    const ink = this.inkOverride ?? p.ink
     gl.uniform3f(this.uRender.uPaper ?? null, p.paper[0], p.paper[1], p.paper[2])
-    gl.uniform3f(this.uRender.uInk ?? null, p.ink[0], p.ink[1], p.ink[2])
+    gl.uniform3f(this.uRender.uInk ?? null, ink[0], ink[1], ink[2])
     gl.uniform3f(this.uRender.uPigThin ?? null, p.pigThin[0], p.pigThin[1], p.pigThin[2])
     gl.uniform3f(this.uRender.uPigThick ?? null, p.pigThick[0], p.pigThick[1], p.pigThick[2])
     gl.drawArrays(gl.TRIANGLES, 0, 3)

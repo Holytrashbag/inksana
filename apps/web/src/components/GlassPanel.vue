@@ -1,18 +1,27 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+
+import { useGlassPanel } from '@/composables/useGlassPanel'
+
+const panel = ref<HTMLElement | null>(null)
+const canvas = ref<HTMLCanvasElement | null>(null)
+
+useGlassPanel(canvas, panel, { radius: 28 })
+</script>
+
 <template>
-  <!-- A slab of frosted glass: fully translucent so the backdrop blurs through,
-       with an edge gloss, inset highlights for thickness, and a fine surface
-       grain. Everything expressible as utilities lives here; the grain image and
-       the reduced-transparency fallback are the only bits that can't. -->
-  <div
-    class="glass-panel relative isolate overflow-hidden rounded-frame border border-white/40 bg-transparent shadow-[var(--shadow-raised),inset_0_1px_0_rgb(255_255_255/0.65),inset_0_-1px_1px_rgb(13_12_11/0.05)] backdrop-blur-xs backdrop-saturate-[1.6] dark:border-white/12"
-  >
-    <!-- top-down gloss — the light catching the glass surface -->
-    <div
-      class="pointer-events-none absolute inset-0 bg-[linear-gradient(155deg,rgb(255_255_255/0.3),rgb(255_255_255/0)_45%)]"
-    />
-    <!-- fine grain frozen into the glass -->
-    <div
-      class="glass-grain pointer-events-none absolute inset-0 opacity-[0.14] mix-blend-overlay"
+  <!-- A pane of glass rendered in WebGL2, not faked with CSS: the canvas
+       samples whatever's live behind the panel (the WaterField background)
+       every frame and bends it inward near the rounded edges like a real
+       lens, softened by a cheap frosted blur, with a top-down gloss and an
+       inset edge highlight baked into the shader. The outer ring and drop
+       shadow stay as plain CSS — the shader only draws within the panel's
+       own bounds, so it can't cast a shadow outside them. -->
+  <div ref="panel" class="glass-panel relative isolate overflow-hidden rounded-frame">
+    <canvas
+      ref="canvas"
+      class="glass-canvas pointer-events-none absolute inset-0 -z-10 h-full w-full"
+      aria-hidden="true"
     />
     <div class="relative z-1">
       <slot />
@@ -21,17 +30,14 @@
 </template>
 
 <style scoped>
-/* The only two things Tailwind utilities can't express: an SVG feTurbulence
-   grain, and the prefers-reduced-transparency fallback (no Tailwind variant). */
-.glass-grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
+/* Reduced transparency: skip the live refraction and fall back to a plain
+   frosted card, same as the CSS-only version used to do for backdrop-filter. */
 @media (prefers-reduced-transparency: reduce) {
   .glass-panel {
     background-color: var(--color-veil);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+  }
+  .glass-canvas {
+    display: none;
   }
 }
 </style>
