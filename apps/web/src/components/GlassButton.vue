@@ -6,11 +6,11 @@ const emit = defineEmits<{ click: [MouseEvent] }>()
 <template>
   <button
     :type="type"
-    class="glass-button rounded-lg border border-hairline bg-surface-ink/60 dark:bg-surface-card/20 px-10 py-4 shadow-card backdrop-blur-xs transition-all duration-150 ease-out hover:-translate-y-1 hover:bg-surface-ink/95 dark:hover:bg-surface-card/60 hover:shadow-raised active:translate-y-0 focus-visible:shadow-focus focus-visible:outline-none"
+    class="glass-button rounded-lg border border-hairline bg-surface-ink/60 dark:bg-surface-card/20 px-6 py-3 sm:px-8 sm:py-3.5 md:px-10 md:py-4 shadow-card backdrop-blur-xs transition-all duration-150 ease-out hover:-translate-y-1 hover:bg-surface-ink/95 dark:hover:bg-surface-card/60 hover:shadow-raised active:translate-y-0 focus-visible:shadow-focus focus-visible:outline-none"
     @click="emit('click', $event)"
   >
     <span
-      class="text-body-md font-medium tracking-wide text-ink-50 dark:text-ink-900 uppercase dark:text-paper"
+      class="text-body-sm sm:text-body-md font-medium tracking-wide text-ink-50 dark:text-ink-900 uppercase dark:text-paper"
     >
       <slot />
     </span>
