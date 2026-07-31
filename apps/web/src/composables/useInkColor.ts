@@ -71,6 +71,65 @@ export function hexToRgb01(hex: string): readonly [number, number, number] {
   return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]
 }
 
+function rgbToHsl([r, g, b]: readonly [number, number, number]): [number, number, number] {
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const l = (max + min) / 2
+  if (max === min) return [0, 0, l]
+  const d = max - min
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+  let h: number
+  if (max === r) h = (g - b) / d + (g < b ? 6 : 0)
+  else if (max === g) h = (b - r) / d + 2
+  else h = (r - g) / d + 4
+  return [h / 6, s, l]
+}
+
+function hue2rgb(p: number, q: number, t: number): number {
+  if (t < 0) t += 1
+  if (t > 1) t -= 1
+  if (t < 1 / 6) return p + (q - p) * 6 * t
+  if (t < 1 / 2) return q
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+  return p
+}
+
+function hslToRgb(h: number, s: number, l: number): [number, number, number] {
+  if (s === 0) return [l, l, l]
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+  const p = 2 * l - q
+  return [hue2rgb(p, q, h + 1 / 3), hue2rgb(p, q, h), hue2rgb(p, q, h - 1 / 3)]
+}
+
+/**
+ * Boost a 0..1 RGB color's saturation multiplicatively (an HSL round-trip).
+ * The accent swatches are tuned as a subtle background line color, so GL
+ * effects that want it as a vivid, emitting hue (e.g. SmokeButton's plasma)
+ * boost it here rather than changing the shared swatch values. Leaves fully
+ * desaturated grays untouched; clamps fully-saturated colors at their
+ * ceiling rather than distorting hue.
+ */
+export function saturateRgb(
+  rgb: readonly [number, number, number],
+  factor: number,
+): [number, number, number] {
+  const [h, s, l] = rgbToHsl(rgb)
+  return hslToRgb(h, Math.min(1, s * factor), l)
+}
+
+/**
+ * The complementary color (opposite hue, same saturation/lightness). Used
+ * where an effect needs to stand out *against* the ink accent rather than
+ * echo it — e.g. SmokeButton's plasma is deliberately the complement of the
+ * water background's line color, so the two never collapse into the same
+ * hue. A fully desaturated gray has no hue to flip, so it passes through
+ * unchanged.
+ */
+export function complementRgb(rgb: readonly [number, number, number]): [number, number, number] {
+  const [h, s, l] = rgbToHsl(rgb)
+  return hslToRgb((h + 0.5) % 1, s, l)
+}
+
 /** Look up a stored accent's hex by name. */
 export function hexOfAccent(name: InkAccentName): string {
   return ACCENT_HEX[name]

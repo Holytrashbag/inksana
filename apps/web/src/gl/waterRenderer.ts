@@ -11,8 +11,11 @@
 //
 // The simulation is ported from apps/web/example (which exposed everything
 // through dat.GUI); the render pass is our own ink stylization, and the motion
-// is tuned a touch slower and calmer than the reference. Lives behind the
-// useWater composable; owns its GL resources and frees them on dispose().
+// is tuned a touch slower and calmer than the reference. A click or tap drops
+// a single stronger, wider impulse than the cursor's continuous stir — the
+// wave equation alone carries it outward as an expanding ring, no extra
+// bookkeeping needed. Lives behind the useWater composable; owns its GL
+// resources and frees them on dispose().
 
 /** Simulation grid resolution (square, wave height field). */
 const SIM = 256
@@ -26,6 +29,12 @@ const BRUSH_GAIN = 0.9
 const BRUSH_MAX = 0.08
 /** Pigment injected at the cursor each sim step while the pointer is on-screen. */
 const PAINT_INJECT = 0.02
+
+// Click/tap wave — a single deliberate impulse, stronger and wider than the
+// continuous cursor stir, so a click or tap reads as a discrete wave rather
+// than just another brush stroke.
+const CLICK_STRENGTH = 0.16
+const CLICK_RADIUS = 0.05
 
 // Autonomous ripple emitters. Disabled (count 0): self-generated ripples that
 // ramped up once the pointer went idle read as "uncanny" motion-without-cause.
@@ -375,6 +384,15 @@ export class WaterRenderer {
 
   clearPointer(): void {
     this.hasPointer = false
+  }
+
+  /** Drop a single strong impulse at the given viewport coords (same 0..1
+   * convention as {@link setPointer}) — a discrete wave for a click or tap. */
+  addClickWave(x: number, y: number): void {
+    const ux = this.clamp01(x)
+    const uy = this.clamp01(1 - y) // sim uv has y up
+    this.queueDrop(ux, uy, CLICK_STRENGTH, CLICK_RADIUS)
+    this.lastInteract = this.now()
   }
 
   /** Switch the render palette between the light and dark themes. */

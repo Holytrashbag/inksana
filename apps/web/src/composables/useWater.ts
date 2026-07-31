@@ -36,6 +36,12 @@ export function useWater(
     renderer?.setPointer(event.clientX / window.innerWidth, event.clientY / window.innerHeight)
   }
   const onPointerLeave = () => renderer?.clearPointer()
+  // Fires for both mouse clicks and touch taps, and bubbles up from any
+  // element on the page (the CTA buttons included) since none of them stop
+  // propagation — so clicking a button ripples the water behind it too.
+  const onPointerDown = (event: PointerEvent) => {
+    renderer?.addClickWave(event.clientX / window.innerWidth, event.clientY / window.innerHeight)
+  }
   // Pointer events get cancelled once a mobile browser claims a gesture as a
   // page scroll, so a swipe stops driving pointermove partway through. touch*
   // events keep firing for the whole gesture even while the page scrolls.
@@ -72,6 +78,7 @@ export function useWater(
       renderer.start()
       window.addEventListener('pointermove', onPointerMove, { passive: true })
       window.addEventListener('pointerout', onPointerLeave)
+      window.addEventListener('pointerdown', onPointerDown, { passive: true })
       window.addEventListener('touchmove', onTouchMove, { passive: true })
       window.addEventListener('touchend', onTouchEnd)
       window.addEventListener('touchcancel', onTouchEnd)
@@ -84,6 +91,7 @@ export function useWater(
   onUnmounted(() => {
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerout', onPointerLeave)
+    window.removeEventListener('pointerdown', onPointerDown)
     window.removeEventListener('touchmove', onTouchMove)
     window.removeEventListener('touchend', onTouchEnd)
     window.removeEventListener('touchcancel', onTouchEnd)
