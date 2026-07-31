@@ -146,6 +146,13 @@
   --shadow-card: 0 1px 2px rgb(13 12 11 / 0.04), 0 8px 24px -12px rgb(13 12 11 / 0.18);
   --shadow-raised: 0 2px 4px rgb(13 12 11 / 0.06), 0 16px 40px -16px rgb(13 12 11 / 0.28);
   --shadow-focus: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--color-ink-950);
+  /* Inverse of the above — recessed rather than raised, so a control reads as
+     pressed/carved into the surface it sits on (neumorphic form fields on
+     GlassPanel). Same soft, low-contrast philosophy as shadow-card/raised. */
+  --shadow-carved: inset 1px 1px 3px rgb(13 12 11 / 0.12), inset -1px -1px 2px rgb(255 255 255 / 0.5);
+  --shadow-carved-focus:
+    inset 1px 1px 3px rgb(13 12 11 / 0.16), inset -1px -1px 2px rgb(255 255 255 / 0.5),
+    0 0 0 2px var(--color-ink-950);
 
   /* ---- Layout containers ---------------------------------------------- */
   --container-content: 1280px; /* max-w-content */
@@ -191,6 +198,10 @@
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.7);
   --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.5), 0 16px 40px -16px rgb(0 0 0 / 0.8);
   --shadow-focus: 0 0 0 2px var(--color-ink-950), 0 0 0 4px var(--color-paper);
+  --shadow-carved: inset 1px 1px 3px rgb(0 0 0 / 0.55), inset -1px -1px 2px rgb(255 255 255 / 0.05);
+  --shadow-carved-focus:
+    inset 1px 1px 3px rgb(0 0 0 / 0.6), inset -1px -1px 2px rgb(255 255 255 / 0.05),
+    0 0 0 2px var(--color-paper);
 }
 
 @keyframes draw-in {

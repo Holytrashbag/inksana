@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import { useInkRipple } from '@/composables/useInkRipple'
 import { useSmokeButton } from '@/composables/useSmokeButton'
 
 withDefaults(defineProps<{ type?: 'button' | 'submit' | 'reset' }>(), { type: 'button' })
@@ -10,6 +11,12 @@ const button = ref<HTMLButtonElement | null>(null)
 const canvas = ref<HTMLCanvasElement | null>(null)
 
 useSmokeButton(canvas, button)
+const { ripple } = useInkRipple(button)
+
+function onClick(event: MouseEvent) {
+  ripple(event)
+  emit('click', event)
+}
 </script>
 
 <template>
@@ -17,7 +24,7 @@ useSmokeButton(canvas, button)
     ref="button"
     :type="type"
     class="smoke-button group relative isolate overflow-hidden rounded-lg transition-transform duration-150 ease-out hover:-translate-y-1 active:translate-y-0 focus-visible:shadow-focus focus-visible:outline-none"
-    @click="emit('click', $event)"
+    @click="onClick"
   >
     <div class="absolute -inset-4 -z-10">
       <canvas

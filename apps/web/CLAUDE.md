@@ -16,6 +16,7 @@ Scoped rules for the Vue 3 SPA. These extend the root `CLAUDE.md`; where they co
   ```
 
   Give optional props defaults with `withDefaults`.
+
 - **Extract logic into composables** under `src/composables/` (named `useX`, one per file). Keep `<script setup>` thin — it wires composables to the template. GL, data-fetching, and reusable stateful logic do not belong inline in a component.
 - **Prefer small, single-purpose components.** If an SFC's `<template>` grows past ~150 lines or juggles several concerns, split it. Many small components beat one large one.
 - Route views live in `src/views/` (or `src/router/`), shared components in `src/components/`. Global state goes in Pinia stores under `src/stores/`, not in ad-hoc singletons.
@@ -49,4 +50,4 @@ Strict but pragmatic.
 - Raw WebGL2 by default — assume WebGL2 features are available. **three.js is permitted** for glTF/GLB mesh loading and rendering where raw WebGL2 would be disproportionate. It is not currently a dependency; add it if such a need arises. Reach for raw GL for shader-only / fullscreen effects.
 - **Isolate GL behind composables/modules** (e.g. `src/composables/` or a dedicated `src/gl/` module). Components should not touch the raw context directly. The same applies to three — keep the scene/renderer inside the module, not the SFC.
 - **Own the lifecycle explicitly.** Create context, programs, and buffers deliberately; dispose of every GL resource (for three: geometries, materials, and the renderer) and cancel the render loop on `onUnmounted`. Route changes must not leak contexts.
-- **three ShaderMaterial gotcha:** with `glslVersion: THREE.GLSL3`, three does *not* declare a fragment output — declare your own `out vec4` and use explicit `in`/`out` varyings (not `gl_FragColor`).
+- **three ShaderMaterial gotcha:** with `glslVersion: THREE.GLSL3`, three does _not_ declare a fragment output — declare your own `out vec4` and use explicit `in`/`out` varyings (not `gl_FragColor`).
