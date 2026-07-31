@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import ContactForm from '@/components/ContactForm.vue'
 import GlassButton from '@/components/GlassButton.vue'
 import SmokeButton from '@/components/SmokeButton.vue'
 import WaterField from '@/components/WaterField.vue'
+
+const router = useRouter()
 import { useContactReveal } from '@/composables/useContactReveal'
 
 const hero = ref<HTMLElement | null>(null)
@@ -39,7 +42,7 @@ const { revealed, reveal, conceal } = useContactReveal(hero, contact)
         <div
           class="flex w-full max-w-xs flex-col gap-4 sm:w-auto sm:max-w-none sm:flex-row sm:gap-8 md:gap-16"
         >
-          <GlassButton>View Portfolio</GlassButton>
+          <GlassButton @click="router.push('/portfolio')">View Portfolio</GlassButton>
           <SmokeButton @click="reveal">Book a Session</SmokeButton>
         </div>
       </section>
