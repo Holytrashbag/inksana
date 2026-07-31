@@ -279,10 +279,14 @@
 }
 
 /* Hide the OS cursor site-wide; CustomCursor.vue replaces it with a stroked
-   ring. Unlayered !important so it also overrides link/button cursors and
-   Tailwind's cursor-* utilities. */
-*,
-*::before,
-*::after {
-  cursor: none !important;
+   ring. Scoped to fine-pointer devices (mouse/trackpad) to match
+   useCustomCursor's own mount gate — touchscreens have no OS cursor to hide
+   and never get the replacement. Unlayered !important so it also overrides
+   link/button cursors and Tailwind's cursor-* utilities. */
+@media (hover: hover) and (pointer: fine) {
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
+  }
 }

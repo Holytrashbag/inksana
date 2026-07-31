@@ -57,6 +57,14 @@ export function useCustomCursor(
     typeof window.matchMedia === 'function' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+  // Touchscreens have no real pointer to replace — mounting the listeners
+  // there would just make the mark pop in on the first swipe and never
+  // track anything meaningfully. `hover: hover` + `pointer: fine` is the
+  // standard signal for "primary input is a mouse/trackpad".
+  const hasFinePointer = () =>
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
   let target = { x: window.innerWidth / 2, y: window.innerHeight / 2 }
   let state: CursorState = { x: target.x, y: target.y }
   let last = performance.now()
@@ -75,6 +83,9 @@ export function useCustomCursor(
   }
 
   const onPointerMove = (event: PointerEvent) => {
+    // Ignore touch drags on hybrid devices (e.g. a touchscreen laptop) —
+    // only a mouse/pen should drive the mark.
+    if (event.pointerType === 'touch') return
     target = { x: event.clientX, y: event.clientY }
     if (!seen) {
       seen = true
@@ -108,6 +119,8 @@ export function useCustomCursor(
   }
 
   onMounted(() => {
+    if (!hasFinePointer()) return
+
     reduced = prefersReducedMotion()
     write() // seed the transform so the cursor is placed before its first reveal
     window.addEventListener('pointermove', onPointerMove, { passive: true })
