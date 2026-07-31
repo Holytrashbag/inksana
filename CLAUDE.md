@@ -75,7 +75,7 @@ Tailwind v4 is wired into `apps/web` via the `@tailwindcss/vite` plugin (see `vi
 ## Git & commits
 
 - **Conventional Commits.** `type(scope): subject` — e.g. `feat(web): add artist gallery`, `fix(cms): populate portfolio media`. Types: `feat`, `fix`, `chore`, `refactor`, `test`, `docs`, `ci`, `build`.
-- **Imperative, concise subjects** (~72 chars, no trailing period). The body explains *why*, not *what*.
+- **Imperative, concise subjects** (~72 chars, no trailing period). The body explains _why_, not _what_.
 - **Branch names:** `type/short-description` (e.g. `feat/artist-gallery`, `fix/preview-context-leak`).
 - **No AI attribution** in commit messages or PR bodies — omit `Co-Authored-By` / "Generated with Claude Code" trailers.
 
