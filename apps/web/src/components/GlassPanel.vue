@@ -10,13 +10,6 @@ useGlassPanel(canvas, panel, { radius: 28 })
 </script>
 
 <template>
-  <!-- A pane of glass rendered in WebGL2, not faked with CSS: the canvas
-       samples whatever's live behind the panel (the WaterField background)
-       every frame and bends it inward near the rounded edges like a real
-       lens, softened by a cheap frosted blur, with a top-down gloss and an
-       inset edge highlight baked into the shader. The outer ring and drop
-       shadow stay as plain CSS — the shader only draws within the panel's
-       own bounds, so it can't cast a shadow outside them. -->
   <div ref="panel" class="glass-panel relative isolate overflow-hidden rounded-frame">
     <canvas
       ref="canvas"
@@ -30,8 +23,6 @@ useGlassPanel(canvas, panel, { radius: 28 })
 </template>
 
 <style scoped>
-/* Reduced transparency: skip the live refraction and fall back to a plain
-   frosted card, same as the CSS-only version used to do for backdrop-filter. */
 @media (prefers-reduced-transparency: reduce) {
   .glass-panel {
     background-color: var(--color-veil);
