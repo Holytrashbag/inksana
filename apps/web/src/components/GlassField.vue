@@ -34,7 +34,7 @@ const model = defineModel<string>({ default: '' })
       :autocomplete="autocomplete"
       :required="required"
       rows="5"
-      class="w-full resize-none rounded-lg border border-hairline/40 bg-surface-card/25 px-4 py-3 text-body-md text-ink-950 shadow-carved outline-none transition-shadow duration-150 ease-out placeholder:text-ink-400 focus:shadow-carved-focus dark:border-hairline/20 dark:bg-surface-card/10 dark:text-paper dark:placeholder:text-ink-500"
+      class="w-full resize-none rounded-lg border border-hairline/40 bg-surface-card/25 px-4 py-3 text-body-md text-ink-950 shadow-inset outline-none transition-shadow duration-150 ease-out placeholder:text-ink-400 focus:shadow-inset-focus dark:border-hairline/20 dark:bg-surface-card/10 dark:text-paper dark:placeholder:text-ink-500"
     />
     <input
       v-else
@@ -44,7 +44,7 @@ const model = defineModel<string>({ default: '' })
       :placeholder="placeholder"
       :autocomplete="autocomplete"
       :required="required"
-      class="w-full rounded-lg border border-hairline/40 bg-surface-card/25 px-4 py-3 text-body-md text-ink-950 shadow-carved outline-none transition-shadow duration-150 ease-out placeholder:text-ink-400 focus:shadow-carved-focus dark:border-hairline/20 dark:bg-surface-card/10 dark:text-paper dark:placeholder:text-ink-500"
+      class="w-full rounded-lg border border-hairline/40 bg-surface-card/25 px-4 py-3 text-body-md text-ink-950 shadow-inset outline-none transition-shadow duration-150 ease-out placeholder:text-ink-400 focus:shadow-inset-focus dark:border-hairline/20 dark:bg-surface-card/10 dark:text-paper dark:placeholder:text-ink-500"
     />
   </div>
 </template>

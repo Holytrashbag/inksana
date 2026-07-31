@@ -26,17 +26,32 @@ function onSubmit() {
         <h2 class="font-display text-display-sm text-ink-950 dark:text-paper">Get in Touch</h2>
       </div>
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <GlassField id="contact-name" v-model="name" label="Name" autocomplete="name" required />
+        <GlassField
+          id="contact-name"
+          v-model="name"
+          label="Name"
+          autocomplete="name"
+          placeholder="Your Name"
+          required
+        />
         <GlassField
           id="contact-email"
           v-model="email"
           label="Email"
           type="email"
           autocomplete="email"
+          placeholder="your.email@example.com"
           required
         />
       </div>
-      <GlassField id="contact-message" v-model="message" label="Message" multiline required />
+      <GlassField
+        id="contact-message"
+        v-model="message"
+        label="Message"
+        placeholder="Describe the tattoo, size, location and style you're interested in..."
+        multiline
+        required
+      />
       <GlassButton type="submit" class="self-start">Send Message</GlassButton>
     </form>
   </GlassPanel>

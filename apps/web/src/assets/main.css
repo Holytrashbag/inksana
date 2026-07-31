@@ -149,11 +149,13 @@
   /* Inverse of the above — recessed rather than raised, so a control reads as
      pressed/carved into the surface it sits on (neumorphic form fields on
      GlassPanel). Same soft, low-contrast philosophy as shadow-card/raised. */
-  --shadow-carved: inset 1px 1px 3px rgb(13 12 11 / 0.12), inset -1px -1px 2px rgb(255 255 255 / 0.5);
+  --shadow-carved:
+    inset 1px 1px 3px rgb(13 12 11 / 0.12), inset -1px -1px 2px rgb(255 255 255 / 0.5);
   --shadow-carved-focus:
     inset 1px 1px 3px rgb(13 12 11 / 0.16), inset -1px -1px 2px rgb(255 255 255 / 0.5),
     0 0 0 2px var(--color-ink-950);
-
+  --shadow-inset: inset 1px 1px 4px rgb(13 12 11 / 0.7), 2px 2px 4px rgba(255, 244, 217, 0.15);
+  --shadow-inset-focus: inset 2px 2px 6px rgb(13 12 11 / 0.8), 2px 2px 4px rgba(255, 244, 217, 0.2);
   /* ---- Layout containers ---------------------------------------------- */
   --container-content: 1280px; /* max-w-content */
   --container-narrow: 760px; /* max-w-narrow */

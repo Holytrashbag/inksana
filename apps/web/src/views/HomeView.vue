@@ -50,7 +50,7 @@ const { revealed, reveal, conceal } = useContactReveal(hero, contact)
       >
         <button
           type="button"
-          class="text-label text-ink-500 uppercase tracking-wider transition-colors duration-150 ease-out hover:text-ink-950 dark:text-ink-400 dark:hover:text-paper"
+          class="text-ink-800 text-body-md tracking-wider transition-colors duration-150 ease-out hover:text-paper dark:text-ink-200 dark:hover:text-ink-950"
           @click="conceal"
         >
           &lsaquo; Back
