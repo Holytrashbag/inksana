@@ -34,9 +34,9 @@ function onClick(event: MouseEvent) {
       />
     </div>
     <div
-      class="m-0.5 rounded-md bg-surface-ink/30 px-12 py-5 transition-colors duration-300 group-hover:bg-surface-ink/10"
+      class="m-0.5 rounded-md bg-surface-ink/30 px-8 py-4 sm:px-10 sm:py-4.5 md:px-12 md:py-5 transition-colors duration-300 group-hover:bg-surface-ink/10"
     >
-      <span class="text-body-md font-medium tracking-wide text-paper uppercase">
+      <span class="text-body-sm sm:text-body-md font-medium tracking-wide text-paper uppercase">
         <slot />
       </span>
     </div>

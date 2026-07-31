@@ -169,7 +169,20 @@ const float LINES = 3.4;   // higher = more topographic lines
 const float WARP = 7.0;    // how hard ripples bend the linework
 const float LEVELS = 5.0;  // ink quantization steps (linocut feel)
 
-float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float hash(vec2 p) {
+  // Wrap the lattice coordinate before the large-constant multiply below. fbm's
+  // lacunarity (p *= 2.03 per octave) plus the uTime-driven domain warp push p
+  // into the hundreds/thousands; on mobile GPUs where "highp" fragment
+  // precision is actually fp16, multiplying that by 123/456 overflows into a
+  // range where fract() only has a handful of representable steps, so the
+  // noise snaps to an axis-aligned grid that visibly crawls as uTime grows.
+  // Wrapping first keeps the multiply's input small regardless of how large
+  // the incoming coordinate gets, independent of the uTime magnitude.
+  p = mod(p, 289.0);
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
 float vnoise(vec2 p) {
   vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   float a = hash(i), b = hash(i + vec2(1.0, 0.0)), c = hash(i + vec2(0.0, 1.0)), d = hash(i + vec2(1.0, 1.0));
@@ -192,10 +205,10 @@ void main() {
 
   vec2 p = vUv * vec2(uAspect, 1.0);
 
-  // Bound the time magnitude fed into the noise: many mobile GPUs implement
-  // "highp" fragment precision as effective mediump, and fbm/hash lose
-  // structure (read back as a grid) once their input gets large. The wrap
-  // period is long enough that nobody will sit on the page to see the seam.
+  // Keep the raw time value from growing forever (hash() is what actually
+  // guards against the mobile mediump precision grid — see its comment). The
+  // wrap period here is long enough that nobody will sit on the page to see
+  // the seam.
   float wt = mod(uTime, 1000.0);
 
   // slowly drifting domain-warped marble — the always-present ink structure
